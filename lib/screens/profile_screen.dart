@@ -20,7 +20,9 @@ class ProfileScreen extends StatelessWidget {
           const CircleAvatar(
             radius: 36,
             backgroundColor: AppTheme.accent,
-            child: Icon(Icons.person, color: Colors.white, size: 36),
+            backgroundImage: NetworkImage(
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+            ),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -38,8 +40,8 @@ class ProfileScreen extends StatelessWidget {
             value: '${library.history.length}',
           ),
           _StatTile(
-            label: 'Đánh dấu',
-            value: '${library.bookmarks.length}',
+            label: 'Thông báo',
+            value: library.notificationSetting.label,
           ),
         ],
       ),

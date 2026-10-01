@@ -1,3 +1,5 @@
+import '../core/comic_enums.dart';
+
 class Comic {
   const Comic({
     required this.id,
@@ -7,7 +9,8 @@ class Comic {
     required this.coverColor,
     required this.coverLabel,
     required this.totalChapters,
-    this.genre = 'Tiên hiệp',
+    this.genre = ComicGenre.tienHiep,
+    this.coverUrl = '',
   });
 
   final String id;
@@ -17,5 +20,6 @@ class Comic {
   final int coverColor;
   final String coverLabel;
   final int totalChapters;
-  final String genre;
+  final ComicGenre genre;
+  final String coverUrl;
 }

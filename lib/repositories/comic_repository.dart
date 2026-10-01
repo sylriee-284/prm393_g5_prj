@@ -20,7 +20,7 @@ class ComicRepository {
           (c) =>
               c.title.toLowerCase().contains(q) ||
               c.author.toLowerCase().contains(q) ||
-              c.genre.toLowerCase().contains(q),
+              c.genre.label.toLowerCase().contains(q),
         )
         .toList();
   }

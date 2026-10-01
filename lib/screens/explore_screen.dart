@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../core/app_theme.dart';
 import '../core/constants.dart';
 import '../providers/comic_provider.dart';
-import '../widgets/comic_cover.dart';
-import 'comic_detail_screen.dart';
+import '../widgets/explore_card.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
@@ -26,41 +24,7 @@ class ExploreScreen extends StatelessWidget {
         ),
         itemCount: comics.length,
         itemBuilder: (context, index) {
-          final comic = comics[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ComicDetailScreen(comicId: comic.id),
-                ),
-              );
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return ComicCover(
-                      comic: comic,
-                      width: constraints.maxWidth,
-                      height: 140,
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  comic.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          );
+          return ExploreCard(comic: comics[index]);
         },
       ),
     );
