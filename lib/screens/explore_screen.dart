@@ -11,13 +11,15 @@ class ExploreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final comics = context.watch<ComicProvider>().comics;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       appBar: AppBar(title: const Text(AppConstants.navExplore)),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isLandscape ? 5 : 3,
           mainAxisSpacing: 16,
           crossAxisSpacing: 12,
           childAspectRatio: 0.55,
