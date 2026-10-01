@@ -37,7 +37,7 @@ class ComicDetailHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${comic.genre.label} · ${comic.totalChapters} chương',
+                '${comic.genre.label} · ${comic.totalChapters} chương · ${comic.formattedViews} lượt đọc',
                 style: const TextStyle(color: AppTheme.textSecondary),
               ),
             ],

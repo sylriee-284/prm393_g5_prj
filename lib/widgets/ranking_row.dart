@@ -56,7 +56,9 @@ class RankingRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${comic.totalChapters} chương · ${comic.genre.label}',
+                    '${comic.formattedViews} lượt đọc · ${comic.totalChapters} chương · ${comic.genre.label}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 13,

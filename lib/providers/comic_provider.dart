@@ -19,7 +19,7 @@ class ComicProvider extends ChangeNotifier {
 
   List<Comic> get ranking {
     final list = [..._comics];
-    list.sort((a, b) => b.totalChapters.compareTo(a.totalChapters));
+    list.sort((a, b) => b.views.compareTo(a.views));
     return list;
   }
 }

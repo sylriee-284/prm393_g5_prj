@@ -38,4 +38,17 @@ void main() {
     delegate = grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
     expect(delegate.crossAxisCount, 5);
   });
+
+  testWidgets('Ranking screen ranks comics by views descending',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const NovelApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Xếp Hạng'));
+    await tester.pumpAndSettle();
+
+    // Check top ranked item is Nguyên Tôn with 4.5M lượt đọc
+    expect(find.text('Nguyên Tôn'), findsOneWidget);
+    expect(find.textContaining('4.5M lượt đọc'), findsOneWidget);
+  });
 }

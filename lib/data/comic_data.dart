@@ -14,6 +14,7 @@ class ComicData {
       coverUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
       totalChapters: 267,
       genre: ComicGenre.vongDu,
+      views: 520000,
     ),
     Comic(
       id: 'c2',
@@ -25,6 +26,7 @@ class ComicData {
       coverUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU6v9fJCm0c7djEz5w7fEpcrrF9mw42d9MTPReOkkRuw&s=10',
       totalChapters: 4900,
       genre: ComicGenre.tienHiep,
+      views: 1250000,
     ),
     Comic(
       id: 'c3',
@@ -37,6 +39,7 @@ class ComicData {
       coverUrl: 'https://dai-quan-gia-la-ma-hoang.com/wp-content/uploads/2026/06/dai-quan-gia-1.jpg',
       totalChapters: 1312,
       genre: ComicGenre.huyenHuyen,
+      views: 3400000,
     ),
     Comic(
       id: 'c4',
@@ -48,6 +51,7 @@ class ComicData {
       coverUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSS0nHGN75rz4KirWfaB28JdOkKGyKQCAhnNPu5Py70xA&s=10',
       totalChapters: 1193,
       genre: ComicGenre.xuyenKhong,
+      views: 890000,
     ),
     Comic(
       id: 'c5',
@@ -59,6 +63,7 @@ class ComicData {
       coverUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw_XE4QQl_GhC8b_zH5jx9KunGiharrEpKyxETnkRv0Q&s=10',
       totalChapters: 3379,
       genre: ComicGenre.trongSinh,
+      views: 2100000,
     ),
     Comic(
       id: 'c6',
@@ -70,6 +75,7 @@ class ComicData {
       coverUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBoDyBy8AhTGPNn3GcJnh73oO2Qk8iJ4fLasPv9vzx5Q&s=10',
       totalChapters: 1504,
       genre: ComicGenre.action,
+      views: 4500000,
     ),
     Comic(
       id: 'c7',
@@ -82,6 +88,7 @@ class ComicData {
       coverUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-mKsgsjkan4hnKCfM9wjiphcZyJUVRDcjb-4e_8iSgg&s=10',
       totalChapters: 860,
       genre: ComicGenre.khoaHuyen,
+      views: 310000,
     ),
   ];
 
