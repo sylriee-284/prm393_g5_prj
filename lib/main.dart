@@ -34,6 +34,10 @@ class NovelApp extends StatelessWidget {
         title: 'Tủ Truyện',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
+        scrollBehavior: const ScrollBehavior().copyWith(
+          overscroll: false,
+          physics: const ClampingScrollPhysics(),
+        ),
         home: const MainShell(),
       ),
     );

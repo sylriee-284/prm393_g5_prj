@@ -1,3 +1,5 @@
+import '../core/comic_enums.dart';
+
 class Comic {
   const Comic({
     required this.id,
@@ -7,7 +9,11 @@ class Comic {
     required this.coverColor,
     required this.coverLabel,
     required this.totalChapters,
-    this.genre = 'Tiên hiệp',
+    this.genre = ComicGenre.tienHiep,
+    this.coverUrl = '',
+    this.views = 0,
+    this.status = ComicStatus.ongoing,
+    this.rating = 5.0,
   });
 
   final String id;
@@ -17,5 +23,20 @@ class Comic {
   final int coverColor;
   final String coverLabel;
   final int totalChapters;
-  final String genre;
+  final ComicGenre genre;
+  final String coverUrl;
+  final int views;
+  final ComicStatus status;
+  final double rating;
+
+  String get formattedViews {
+    if (views >= 1000000) {
+      final val = views / 1000000;
+      return '${val.toStringAsFixed(val.truncateToDouble() == val ? 0 : 1)}M';
+    } else if (views >= 1000) {
+      final val = views / 1000;
+      return '${val.toStringAsFixed(val.truncateToDouble() == val ? 0 : 1)}K';
+    }
+    return '$views';
+  }
 }

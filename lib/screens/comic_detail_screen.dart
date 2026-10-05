@@ -6,7 +6,7 @@ import '../providers/comic_provider.dart';
 import '../providers/library_provider.dart';
 import '../providers/reader_provider.dart';
 import '../repositories/comic_repository.dart';
-import '../widgets/comic_cover.dart';
+import '../widgets/comic_detail_header.dart';
 import 'reader_screen.dart';
 
 class ComicDetailScreen extends StatelessWidget {
@@ -39,37 +39,7 @@ class ComicDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ComicCover(comic: comic, width: 92, height: 124),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      comic.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      comic.author,
-                      style: const TextStyle(color: AppTheme.textSecondary),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${comic.genre} · ${comic.totalChapters} chương',
-                      style: const TextStyle(color: AppTheme.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          ComicDetailHeader(comic: comic),
           const SizedBox(height: 16),
           Text(comic.description, style: const TextStyle(height: 1.45)),
           const SizedBox(height: 16),
@@ -80,9 +50,9 @@ class ComicDetailScreen extends StatelessWidget {
                 chapterNumber: current,
               );
               library.updateProgress(comic.id, current);
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ReaderScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ReaderScreen()));
             },
             child: Text('Đọc tiếp chương $current'),
           ),
@@ -107,9 +77,9 @@ class ComicDetailScreen extends StatelessWidget {
                   comic,
                   chapterNumber: chapter.number,
                 );
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ReaderScreen()),
-                );
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const ReaderScreen()));
               },
             ),
           ),

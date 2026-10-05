@@ -3,13 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../core/constants.dart';
-import '../models/comic.dart';
 import '../providers/comic_provider.dart';
 import '../providers/library_provider.dart';
-import '../providers/reader_provider.dart';
-import '../widgets/comic_cover.dart';
-import 'comic_detail_screen.dart';
-import 'reader_screen.dart';
+import '../widgets/library_row.dart';
+import '../widgets/library_settings_sheet.dart';
 import 'search_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -48,9 +45,9 @@ class _LibraryScreenState extends State<LibraryScreen>
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SearchScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SearchScreen()));
             },
           ),
           IconButton(
@@ -58,7 +55,7 @@ class _LibraryScreenState extends State<LibraryScreen>
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                builder: (ctx) => const _LibrarySettingsSheet(),
+                builder: (ctx) => const LibrarySettingsSheet(),
               );
             },
           ),
@@ -142,196 +139,8 @@ class _LibraryList extends StatelessWidget {
         final entry = entries[index];
         final comic = comics.byId(entry.comicId);
         if (comic == null) return const SizedBox.shrink();
-        return _LibraryRow(comic: comic, entry: entry);
+        return LibraryRow(comic: comic, entry: entry);
       },
-    );
-  }
-}
-
-class _LibraryRow extends StatelessWidget {
-  const _LibraryRow({required this.comic, required this.entry});
-
-  final Comic comic;
-  final LibraryEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final library = context.read<LibraryProvider>();
-
-    return InkWell(
-      onTap: () {
-        context.read<ReaderProvider>().open(
-          comic,
-          chapterNumber: entry.currentChapter,
-        );
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ReaderScreen()),
-        );
-      },
-      onLongPress: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ComicDetailScreen(comicId: comic.id),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            ComicCover(comic: comic),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    comic.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textPrimary,
-                      height: 1.25,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${AppConstants.readProgressPrefix} ${entry.currentChapter}/${comic.totalChapters}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: Icon(
-                entry.notifyEnabled
-                    ? Icons.notifications_none
-                    : Icons.notifications_off_outlined,
-                color: AppTheme.textSecondary,
-              ),
-              onPressed: () {
-                library.toggleNotify(comic.id);
-                final enabled = library.entryOf(comic.id)?.notifyEnabled ?? false;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      enabled
-                          ? 'Đã bật thông báo chương mới'
-                          : 'Đã tắt thông báo',
-                    ),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.more_vert, color: AppTheme.textSecondary),
-              onPressed: () => _showActions(context, library),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showActions(BuildContext context, LibraryProvider library) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: const Text('Chi tiết truyện'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ComicDetailScreen(comicId: comic.id),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  library.isBookmarked(comic.id)
-                      ? Icons.bookmark
-                      : Icons.bookmark_border,
-                ),
-                title: Text(
-                  library.isBookmarked(comic.id)
-                      ? 'Bỏ đánh dấu'
-                      : 'Đánh dấu',
-                ),
-                onTap: () {
-                  library.toggleBookmark(comic.id);
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  entry.notifyEnabled
-                      ? Icons.notifications_off_outlined
-                      : Icons.notifications_none,
-                ),
-                title: Text(
-                  entry.notifyEnabled ? 'Tắt thông báo' : 'Bật thông báo',
-                ),
-                onTap: () {
-                  library.toggleNotify(comic.id);
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Xóa khỏi lịch sử'),
-                onTap: () {
-                  library.removeFromHistory(comic.id);
-                  Navigator.pop(ctx);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _LibrarySettingsSheet extends StatelessWidget {
-  const _LibrarySettingsSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Cài đặt tủ truyện',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Nhấn vào truyện để tiếp tục đọc. Giữ để xem chi tiết. '
-              'Chuông bật/tắt thông báo chương mới.',
-              style: TextStyle(color: AppTheme.textSecondary, height: 1.4),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../core/comic_enums.dart';
 import '../models/comic.dart';
 import '../repositories/comic_repository.dart';
 
@@ -24,6 +25,7 @@ class LibraryProvider extends ChangeNotifier {
 
   final List<LibraryEntry> _history = [];
   final Set<String> _bookmarks = {};
+  NotificationSetting _notificationSetting = NotificationSetting.all;
 
   void _seed() {
     final comics = _repository.getAll();
@@ -54,6 +56,24 @@ class LibraryProvider extends ChangeNotifier {
   }
 
   bool isBookmarked(String comicId) => _bookmarks.contains(comicId);
+
+  NotificationSetting get notificationSetting => _notificationSetting;
+
+  void setNotificationSetting(NotificationSetting setting) {
+    _notificationSetting = setting;
+    notifyListeners();
+  }
+
+  bool isNotifyEnabled(String comicId) {
+    switch (_notificationSetting) {
+      case NotificationSetting.off:
+        return false;
+      case NotificationSetting.favoriteOnly:
+        return isBookmarked(comicId);
+      case NotificationSetting.all:
+        return entryOf(comicId)?.notifyEnabled ?? false;
+    }
+  }
 
   LibraryEntry? entryOf(String comicId) {
     for (final entry in _history) {
@@ -99,9 +119,6 @@ class LibraryProvider extends ChangeNotifier {
 
   void _ensureHistory(String comicId) {
     if (entryOf(comicId) != null) return;
-    _history.insert(
-      0,
-      LibraryEntry(comicId: comicId, currentChapter: 1),
-    );
+    _history.insert(0, LibraryEntry(comicId: comicId, currentChapter: 1));
   }
 }

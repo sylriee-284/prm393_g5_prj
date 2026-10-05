@@ -37,10 +37,7 @@ class ReaderScreen extends StatelessWidget {
         children: [
           Text(
             comic.title,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppTheme.textSecondary,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 12),
           Text(
