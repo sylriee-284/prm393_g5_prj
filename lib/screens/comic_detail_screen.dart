@@ -50,9 +50,9 @@ class ComicDetailScreen extends StatelessWidget {
                 chapterNumber: current,
               );
               library.updateProgress(comic.id, current);
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ReaderScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ReaderScreen()));
             },
             child: Text('Đọc tiếp chương $current'),
           ),
@@ -77,9 +77,9 @@ class ComicDetailScreen extends StatelessWidget {
                   comic,
                   chapterNumber: chapter.number,
                 );
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ReaderScreen()),
-                );
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const ReaderScreen()));
               },
             ),
           ),

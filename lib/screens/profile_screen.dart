@@ -35,10 +35,7 @@ class ProfileScreen extends StatelessWidget {
             style: TextStyle(color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 24),
-          _StatTile(
-            label: 'Đang đọc',
-            value: '${library.history.length}',
-          ),
+          _StatTile(label: 'Đang đọc', value: '${library.history.length}'),
           _StatTile(
             label: 'Thông báo',
             value: library.notificationSetting.label,

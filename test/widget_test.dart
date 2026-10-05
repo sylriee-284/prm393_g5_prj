@@ -13,8 +13,9 @@ void main() {
     expect(find.textContaining('Thanh Liên Chi Đỉnh'), findsOneWidget);
   });
 
-  testWidgets('Explore screen shows 3 columns in portrait and 5 in landscape',
-      (WidgetTester tester) async {
+  testWidgets('Explore screen shows 3 columns in portrait and 5 in landscape', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -39,8 +40,9 @@ void main() {
     expect(delegate.crossAxisCount, 5);
   });
 
-  testWidgets('Ranking screen ranks comics by views descending',
-      (WidgetTester tester) async {
+  testWidgets('Ranking screen ranks comics by views descending', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const NovelApp());
     await tester.pumpAndSettle();
 
@@ -51,4 +53,21 @@ void main() {
     expect(find.text('Nguyên Tôn'), findsOneWidget);
     expect(find.textContaining('4.5M lượt đọc'), findsOneWidget);
   });
+
+  testWidgets(
+    'Explore screen displays Mới nhất, Đề cử, and Hoàn thành status',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const NovelApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Khám Phá'));
+      await tester.pumpAndSettle();
+
+      // Verify sections
+      expect(find.text('Mới nhất'), findsOneWidget);
+      expect(find.text('Đề cử'), findsOneWidget);
+      expect(find.text('Hoàn thành'), findsOneWidget);
+      expect(find.text('Đọc'), findsOneWidget);
+    },
+  );
 }

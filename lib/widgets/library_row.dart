@@ -12,11 +12,7 @@ import '../screens/reader_screen.dart';
 import 'comic_cover.dart';
 
 class LibraryRow extends StatelessWidget {
-  const LibraryRow({
-    super.key,
-    required this.comic,
-    required this.entry,
-  });
+  const LibraryRow({super.key, required this.comic, required this.entry});
 
   final Comic comic;
   final LibraryEntry entry;
@@ -73,9 +69,7 @@ class LibraryRow extends StatelessWidget {
                       : Icons.bookmark_border,
                 ),
                 title: Text(
-                  library.isBookmarked(comic.id)
-                      ? 'Bỏ đánh dấu'
-                      : 'Đánh dấu',
+                  library.isBookmarked(comic.id) ? 'Bỏ đánh dấu' : 'Đánh dấu',
                 ),
                 onTap: () {
                   library.toggleBookmark(comic.id);
@@ -123,9 +117,8 @@ class LibraryRow extends StatelessWidget {
           comic,
           chapterNumber: entry.currentChapter,
         );
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ReaderScreen()),
-        );
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const ReaderScreen()));
       },
       onLongPress: () {
         Navigator.of(context).push(

@@ -6,11 +6,7 @@ import '../screens/comic_detail_screen.dart';
 import 'comic_cover.dart';
 
 class RankingRow extends StatelessWidget {
-  const RankingRow({
-    super.key,
-    required this.comic,
-    required this.rankIndex,
-  });
+  const RankingRow({super.key, required this.comic, required this.rankIndex});
 
   final Comic comic;
   final int rankIndex;

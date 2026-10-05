@@ -9,9 +9,18 @@ enum ComicGenre {
   vongDu('Võng du'),
   linhDi('Linh dị'),
   action('Hành động'),
-  romance('Lãng mạn');
+  romance('Lãng mạn'),
+  kyAo('Kỳ ảo');
 
   const ComicGenre(this.label);
+  final String label;
+}
+
+enum ComicStatus {
+  ongoing('Đang ra'),
+  completed('Hoàn thành');
+
+  const ComicStatus(this.label);
   final String label;
 }
 

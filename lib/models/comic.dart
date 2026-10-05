@@ -12,6 +12,8 @@ class Comic {
     this.genre = ComicGenre.tienHiep,
     this.coverUrl = '',
     this.views = 0,
+    this.status = ComicStatus.ongoing,
+    this.rating = 5.0,
   });
 
   final String id;
@@ -24,6 +26,8 @@ class Comic {
   final ComicGenre genre;
   final String coverUrl;
   final int views;
+  final ComicStatus status;
+  final double rating;
 
   String get formattedViews {
     if (views >= 1000000) {

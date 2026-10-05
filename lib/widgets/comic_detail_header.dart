@@ -5,10 +5,7 @@ import '../models/comic.dart';
 import 'comic_cover.dart';
 
 class ComicDetailHeader extends StatelessWidget {
-  const ComicDetailHeader({
-    super.key,
-    required this.comic,
-  });
+  const ComicDetailHeader({super.key, required this.comic});
 
   final Comic comic;
 

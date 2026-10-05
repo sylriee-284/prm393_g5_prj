@@ -119,9 +119,6 @@ class LibraryProvider extends ChangeNotifier {
 
   void _ensureHistory(String comicId) {
     if (entryOf(comicId) != null) return;
-    _history.insert(
-      0,
-      LibraryEntry(comicId: comicId, currentChapter: 1),
-    );
+    _history.insert(0, LibraryEntry(comicId: comicId, currentChapter: 1));
   }
 }
