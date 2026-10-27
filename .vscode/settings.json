@@ -1,3 +1,6 @@
 {
-    "CodeGPT.apiKey": "Google AI Studio"
+    "CodeGPT.apiKey": "Google AI Studio",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.maven.enabled": true,
+    "java.autobuild.enabled": true
 }
