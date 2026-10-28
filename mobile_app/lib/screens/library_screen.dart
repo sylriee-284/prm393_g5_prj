@@ -68,14 +68,14 @@ class _LibraryScreenState extends State<LibraryScreen>
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       ),
                       SizedBox(width: 12),
-                      Text('Đang đồng bộ với máy chủ...'),
+                      Text('Đang đồng bộ với thiết bị...'),
                     ],
                   ),
                   duration: Duration(seconds: 1),
                 ),
               );
 
-              final success = await library.syncWithBackend();
+              final success = await library.mergeLocalWithAccount();
               await comics.refresh();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -83,14 +83,14 @@ class _LibraryScreenState extends State<LibraryScreen>
               if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Đã đồng bộ thành công tủ truyện với máy chủ!'),
+                    content: Text('Đã đồng bộ thành công tủ truyện với thiết bị!'),
                     backgroundColor: Colors.green,
                   ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Không thể đồng bộ với máy chủ. Vui lòng kiểm tra lại kết nối mạng!'),
+                    content: Text('Không thể đồng bộ với thiết bị. Vui lòng kiểm tra lại kết nối mạng!'),
                     backgroundColor: Colors.red,
                   ),
                 );

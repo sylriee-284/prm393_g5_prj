@@ -75,17 +75,19 @@ public class LibraryService {
     }
 
     @Transactional
+    public void addBookmark(Long userId, String comicId) {
+        bookmarkRepository.add(userId, comicId);
+    }
+
+    @Transactional
     public boolean toggleBookmark(Long userId, String comicId) {
         if (bookmarkRepository.exists(userId, comicId)) {
             bookmarkRepository.remove(userId, comicId);
             return false;
         } else {
             bookmarkRepository.add(userId, comicId);
-            // Đảm bảo truyện cũng xuất hiện trong lịch sử như thiết kế Flutter
-            if (readingHistoryRepository.findByUserIdAndComicId(userId, comicId).isEmpty()) {
-                readingHistoryRepository.upsert(userId, comicId, 1);
-            }
             return true;
         }
     }
 }
+

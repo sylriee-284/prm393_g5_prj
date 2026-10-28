@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../core/constants.dart';
+import '../providers/navigation_provider.dart';
 import 'explore_screen.dart';
 import 'library_screen.dart';
 import 'profile_screen.dart';
 import 'ranking_screen.dart';
 
-class MainShell extends StatefulWidget {
+class MainShell extends StatelessWidget {
   const MainShell({super.key});
-
-  @override
-  State<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends State<MainShell> {
-  int _index = 0;
 
   static const _pages = [
     LibraryScreen(),
@@ -26,15 +21,17 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final nav = context.watch<NavigationProvider>();
+
     return Scaffold(
-      body: IndexedStack(index: _index, children: _pages),
+      body: IndexedStack(index: nav.currentTab, children: _pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
         ),
         child: BottomNavigationBar(
-          currentIndex: _index,
-          onTap: (value) => setState(() => _index = value),
+          currentIndex: nav.currentTab,
+          onTap: (value) => nav.setTab(value),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Theme.of(context).brightness == Brightness.dark
               ? AppTheme.darkSurface
