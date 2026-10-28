@@ -183,6 +183,13 @@ void main() {
       expect(find.text('Chỉnh sửa hồ sơ'), findsOneWidget);
       expect(find.text('Đổi mật khẩu'), findsOneWidget);
       expect(find.text('Chế độ ban đêm (Dark Mode)'), findsOneWidget);
+
+      // Bấm "Chỉnh sửa hồ sơ" khi chưa đăng nhập
+      await tester.tap(find.text('Chỉnh sửa hồ sơ'));
+      await tester.pumpAndSettle();
+
+      // Kiểm tra SnackBar yêu cầu đăng nhập xuất hiện
+      expect(find.text('Vui lòng đăng nhập để chỉnh sửa hồ sơ!'), findsOneWidget);
     },
   );
 }

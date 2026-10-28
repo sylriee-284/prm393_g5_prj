@@ -5,6 +5,7 @@ import 'core/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/comic_provider.dart';
 import 'providers/library_provider.dart';
+import 'providers/navigation_provider.dart';
 import 'providers/reader_provider.dart';
 import 'providers/theme_provider.dart';
 import 'repositories/comic_repository.dart';
@@ -28,6 +29,7 @@ class NovelApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => NavigationProvider()),
         Provider(create: (_) => comicRepository ?? ComicRepository()),
         ChangeNotifierProvider(
           create: (context) => ComicProvider(context.read<ComicRepository>()),
@@ -42,6 +44,7 @@ class NovelApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
+            navigatorKey: rootNavigatorKey,
             title: 'Tủ Truyện',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light(),

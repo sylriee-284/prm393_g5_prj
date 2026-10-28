@@ -156,7 +156,12 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = body['message'] as String? ?? 'Cập nhật thông tin thất bại';
+        if (body['data'] is Map) {
+          final errors = (body['data'] as Map).values.join('\n');
+          _errorMessage = errors.isNotEmpty ? errors : (body['message'] as String? ?? 'Cập nhật thông tin thất bại');
+        } else {
+          _errorMessage = body['message'] as String? ?? 'Cập nhật thông tin thất bại';
+        }
         notifyListeners();
         return false;
       }

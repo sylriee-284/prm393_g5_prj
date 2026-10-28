@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../providers/auth_provider.dart';
-import '../providers/library_provider.dart';
+import '../providers/navigation_provider.dart';
 import 'login_screen.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -36,6 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final auth = context.read<AuthProvider>();
+    final nav = context.read<NavigationProvider>();
     final success = await auth.register(
       email: _emailController.text,
       password: _passwordController.text,
@@ -46,15 +48,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      await context.read<LibraryProvider>().syncWithBackend();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Đăng ký tài khoản thành công! Chào mừng ${auth.user?.fullName}!'),
-          backgroundColor: Colors.green.shade700,
-        ),
-      );
+      final userName = auth.user?.fullName;
+
+      // 1. Chuyển về màn hình Tủ Truyện trước
+      nav.setTab(0);
+
+      // 2. Đóng màn hình đăng ký
       Navigator.of(context).pop();
+
+      // 3. Sau khi đã chuyển về màn hình Tủ Truyện, hiển thị bảng hỏi đồng bộ
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final targetContext = rootNavigatorKey.currentContext;
+        if (targetContext != null && targetContext.mounted) {
+          showLoginSyncDialog(targetContext, fullName: userName);
+        }
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

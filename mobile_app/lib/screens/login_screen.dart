@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../providers/auth_provider.dart';
-import '../providers/library_provider.dart';
+import '../providers/navigation_provider.dart';
 import 'register_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final auth = context.read<AuthProvider>();
+    final nav = context.read<NavigationProvider>();
     final success = await auth.login(
       _emailController.text,
       _passwordController.text,
@@ -38,15 +40,21 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      await context.read<LibraryProvider>().syncWithBackend();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Chào mừng ${auth.user?.fullName ?? "bạn"} quay trở lại!'),
-          backgroundColor: Colors.green.shade700,
-        ),
-      );
+      final userName = auth.user?.fullName;
+
+      // 1. Chuyển về màn hình Tủ Truyện trước
+      nav.setTab(0);
+
+      // 2. Đóng màn hình đăng nhập
       Navigator.of(context).pop();
+
+      // 3. Sau khi đã chuyển về màn hình Tủ Truyện, hiển thị bảng hỏi đồng bộ
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final targetContext = rootNavigatorKey.currentContext;
+        if (targetContext != null && targetContext.mounted) {
+          showLoginSyncDialog(targetContext, fullName: userName);
+        }
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -62,9 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đăng nhập'),
-      ),
+      appBar: AppBar(title: const Text('Đăng nhập')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -91,12 +97,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Đăng nhập để đồng bộ lịch sử đọc và truyện yêu thích từ máy chủ',
+                  'Đăng nhập để đồng bộ lịch sử đọc và truyện yêu thích với thiết bị',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 32),
 
@@ -131,9 +134,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                   validator: (val) {
@@ -156,11 +162,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text(
                           'Đăng Nhập',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                 ),
                 const SizedBox(height: 16),
@@ -173,7 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     GestureDetector(
                       onTap: () {
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(),
+                          ),
                         );
                       },
                       child: const Text(
@@ -200,11 +214,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text(
                         'Tài khoản mẫu có sẵn:',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
                       SizedBox(height: 4),
-                      Text('• User: user@novel.com / User@123', style: TextStyle(fontSize: 12)),
-                      Text('• Admin: admin@novel.com / Admin@123', style: TextStyle(fontSize: 12)),
+                      Text(
+                        '• User: user@novel.com / User@123',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        '• Admin: admin@novel.com / Admin@123',
+                        style: TextStyle(fontSize: 12),
+                      ),
                     ],
                   ),
                 ),

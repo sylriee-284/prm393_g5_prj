@@ -62,6 +62,14 @@ public class LibraryController {
         return ResponseEntity.ok(ApiResponse.ok(bookmarks));
     }
 
+    @PutMapping("/bookmarks/{comicId}")
+    public ResponseEntity<ApiResponse<Void>> addBookmark(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable String comicId) {
+        libraryService.addBookmark(currentUser.getId(), comicId);
+        return ResponseEntity.ok(ApiResponse.ok("Đã thêm vào danh sách đánh dấu", null));
+    }
+
     @PostMapping("/bookmarks/{comicId}")
     public ResponseEntity<ApiResponse<Map<String, Boolean>>> toggleBookmark(
             @AuthenticationPrincipal UserPrincipal currentUser,
@@ -71,3 +79,4 @@ public class LibraryController {
         return ResponseEntity.ok(ApiResponse.ok(msg, Map.of("bookmarked", bookmarked)));
     }
 }
+
