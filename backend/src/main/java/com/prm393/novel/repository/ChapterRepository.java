@@ -53,6 +53,16 @@ public class ChapterRepository {
         }
     }
 
+    public void deleteByComicIdAndNumber(String comicId, int number) {
+        String sql = "DELETE FROM chapters WHERE comic_id = ? AND number = ?";
+        jdbcTemplate.update(sql, comicId, number);
+    }
+
+    public int countByComicId(String comicId) {
+        Integer c = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM chapters WHERE comic_id = ?", Integer.class, comicId);
+        return c != null ? c : 0;
+    }
+
     public int count() {
         Integer c = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM chapters", Integer.class);
         return c != null ? c : 0;

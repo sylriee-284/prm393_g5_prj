@@ -14,6 +14,7 @@ class Comic {
     this.views = 0,
     this.status = ComicStatus.ongoing,
     this.rating = 5.0,
+    this.isHidden = false,
   });
 
   final String id;
@@ -28,6 +29,7 @@ class Comic {
   final int views;
   final ComicStatus status;
   final double rating;
+  final bool isHidden;
 
   String get formattedViews {
     if (views >= 1000000) {
@@ -38,6 +40,38 @@ class Comic {
       return '${val.toStringAsFixed(val.truncateToDouble() == val ? 0 : 1)}K';
     }
     return '$views';
+  }
+
+  Comic copyWith({
+    String? id,
+    String? title,
+    String? author,
+    String? description,
+    int? coverColor,
+    String? coverLabel,
+    int? totalChapters,
+    ComicGenre? genre,
+    String? coverUrl,
+    int? views,
+    ComicStatus? status,
+    double? rating,
+    bool? isHidden,
+  }) {
+    return Comic(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      author: author ?? this.author,
+      description: description ?? this.description,
+      coverColor: coverColor ?? this.coverColor,
+      coverLabel: coverLabel ?? this.coverLabel,
+      totalChapters: totalChapters ?? this.totalChapters,
+      genre: genre ?? this.genre,
+      coverUrl: coverUrl ?? this.coverUrl,
+      views: views ?? this.views,
+      status: status ?? this.status,
+      rating: rating ?? this.rating,
+      isHidden: isHidden ?? this.isHidden,
+    );
   }
 
   factory Comic.fromJson(Map<String, dynamic> json) {
@@ -68,6 +102,7 @@ class Comic {
       views: (json['views'] as num?)?.toInt() ?? 0,
       status: parsedStatus,
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
+      isHidden: json['isHidden'] as bool? ?? json['hidden'] as bool? ?? false,
     );
   }
 
@@ -85,7 +120,7 @@ class Comic {
       'views': views,
       'status': status.name,
       'rating': rating,
+      'isHidden': isHidden,
     };
   }
 }
-

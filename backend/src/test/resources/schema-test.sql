@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS comics (
     genre VARCHAR(100),
     views INT,
     status VARCHAR(50),
-    rating DOUBLE
+    rating DOUBLE,
+    is_hidden BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS chapters (

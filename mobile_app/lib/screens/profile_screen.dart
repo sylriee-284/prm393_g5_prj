@@ -7,6 +7,7 @@ import '../providers/auth_provider.dart';
 import '../providers/comic_provider.dart';
 import '../providers/library_provider.dart';
 import '../providers/theme_provider.dart';
+import 'admin/admin_comics_screen.dart';
 import 'login_screen.dart';
 
 
@@ -170,6 +171,70 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
+            if (user.isAdmin) ...[
+              const SizedBox(height: 14),
+              Card(
+                color: isDark ? Colors.orange.shade900.withValues(alpha: 0.35) : Colors.orange.shade50,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(
+                    color: isDark ? Colors.orange.shade800 : Colors.orange.shade300,
+                    width: 1.2,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.admin_panel_settings,
+                            color: isDark ? Colors.orange.shade300 : Colors.orange.shade800,
+                            size: 26,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Khu Vực Quản Trị (Admin)',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: isDark ? Colors.orange.shade200 : Colors.orange.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Thêm truyện mới, đăng chương và tùy chỉnh trạng thái ẩn/hiện truyện cho độc giả.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.orange.shade100 : Colors.orange.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: isDark ? Colors.orange.shade800 : Colors.orange.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const AdminComicsScreen()),
+                            );
+                          },
+                          icon: const Icon(Icons.menu_book),
+                          label: const Text('Quản lý truyện & chương'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
           const SizedBox(height: 24),
 

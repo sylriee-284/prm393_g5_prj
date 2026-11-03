@@ -3,11 +3,14 @@ import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
 import '../models/chapter.dart';
+import '../providers/auth_provider.dart';
 import '../providers/comic_provider.dart';
 import '../providers/library_provider.dart';
 import '../providers/reader_provider.dart';
 import '../repositories/comic_repository.dart';
 import '../widgets/comic_detail_header.dart';
+import 'admin/admin_chapters_screen.dart';
+import 'admin/admin_edit_comic_screen.dart';
 import 'reader_screen.dart';
 
 class ComicDetailScreen extends StatefulWidget {
@@ -45,6 +48,8 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
       return const Scaffold(body: Center(child: Text('Không tìm thấy truyện')));
     }
 
+    final auth = context.watch<AuthProvider>();
+    final isAdmin = auth.user?.isAdmin ?? false;
     final library = context.watch<LibraryProvider>();
     final chapters = _apiChapters ?? context.read<ComicRepository>().getChapters(comic);
     final isLoadingChapters = _apiChapters == null && chapters.isEmpty;
@@ -55,6 +60,81 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
       appBar: AppBar(
         title: Text(comic.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
+          if (isAdmin)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.admin_panel_settings_outlined),
+              tooltip: 'Tùy chọn Quản trị',
+              onSelected: (val) async {
+                if (val == 'edit') {
+                  final updated = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminEditComicScreen(comic: comic),
+                    ),
+                  );
+                  if (updated == true) _loadChapters();
+                } else if (val == 'chapters') {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminChaptersScreen(comic: comic),
+                    ),
+                  );
+                  _loadChapters();
+                } else if (val == 'toggle_visibility') {
+                  final newHidden = !comic.isHidden;
+                  final success = await context.read<ComicProvider>().toggleComicVisibility(comic.id, newHidden);
+                  if (context.mounted && success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          newHidden
+                              ? 'Đã ẩn truyện "${comic.title}"'
+                              : 'Đã công khai truyện "${comic.title}"',
+                        ),
+                        backgroundColor: newHidden ? Colors.orange : Colors.green,
+                      ),
+                    );
+                  }
+                }
+              },
+              itemBuilder: (ctx) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_outlined, size: 20),
+                      SizedBox(width: 8),
+                      Text('Sửa thông tin truyện'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'chapters',
+                  child: Row(
+                    children: [
+                      Icon(Icons.playlist_add, size: 20),
+                      SizedBox(width: 8),
+                      Text('Quản lý các chương'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'toggle_visibility',
+                  child: Row(
+                    children: [
+                      Icon(
+                        comic.isHidden ? Icons.visibility : Icons.visibility_off,
+                        size: 20,
+                        color: comic.isHidden ? Colors.green : Colors.orange,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(comic.isHidden ? 'Công khai truyện' : 'Ẩn truyện'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           IconButton(
             icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_border),
             onPressed: () => library.toggleBookmark(comic.id),
@@ -64,6 +144,28 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (comic.isHidden)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.visibility_off, color: Colors.orange),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Truyện này đang ở trạng thái ẨN. Độc giả không thể thấy bộ truyện này.',
+                      style: TextStyle(fontSize: 13, color: Colors.deepOrange, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ComicDetailHeader(comic: comic),
           const SizedBox(height: 16),
           Text(comic.description, style: const TextStyle(height: 1.45)),

@@ -157,4 +157,87 @@ class NovelBackendApplicationTests {
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data.length()").value(org.hamcrest.Matchers.greaterThan(0)));
     }
+
+    @Test
+    @DisplayName("9. Admin thêm truyện mới, thêm chương và ẩn/hiện truyện")
+    void testAdminComicFlow() throws Exception {
+        // Đăng nhập tài khoản Admin mẫu
+        LoginRequest adminLogin = new LoginRequest("admin@novel.com", "Admin@123");
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(adminLogin)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString())
+                .get("data").get("accessToken").asText();
+
+        // 9.1. Admin tạo truyện mới
+        String comicId = "c_test_" + System.currentTimeMillis();
+        com.prm393.novel.dto.request.SaveComicRequest comicReq = new com.prm393.novel.dto.request.SaveComicRequest();
+        comicReq.setId(comicId);
+        comicReq.setTitle("Truyện Test Tự Động Của Admin");
+        comicReq.setAuthor("Admin Tác Giả");
+        comicReq.setDescription("Mô tả truyện test");
+        comicReq.setGenre("Tiên hiệp");
+        comicReq.setIsHidden(false);
+
+        mockMvc.perform(post("/api/admin/comics")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(comicReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.title").value("Truyện Test Tự Động Của Admin"));
+
+        // 9.2. Admin thêm chương cho truyện
+        com.prm393.novel.dto.request.SaveChapterRequest chapterReq =
+                new com.prm393.novel.dto.request.SaveChapterRequest(1, "Chương 1: Khởi đầu mới", "Nội dung chương 1 do admin up...");
+
+        mockMvc.perform(post("/api/admin/comics/" + comicId + "/chapters")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(chapterReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.title").value("Chương 1: Khởi đầu mới"));
+
+        // 9.3. Reader đọc được truyện khi đang công khai
+        mockMvc.perform(get("/api/comics/" + comicId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(comicId));
+
+        // 9.4. Admin chuyển trạng thái truyện sang Ẩn
+        com.prm393.novel.dto.request.ToggleVisibilityRequest hideReq =
+                new com.prm393.novel.dto.request.ToggleVisibilityRequest(true);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/admin/comics/" + comicId + "/visibility")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(hideReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.hidden").value(true));
+
+        // 9.5. Reader bình thường truy cập truyện bị ẩn sẽ bị 404
+        mockMvc.perform(get("/api/comics/" + comicId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("10. User thông thường truy cập API Admin bị từ chối 403 Forbidden")
+    void testNormalUserCannotAccessAdmin() throws Exception {
+        LoginRequest userLogin = new LoginRequest("user@novel.com", "User@123");
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userLogin)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString())
+                .get("data").get("accessToken").asText();
+
+        mockMvc.perform(get("/api/admin/comics")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
 }

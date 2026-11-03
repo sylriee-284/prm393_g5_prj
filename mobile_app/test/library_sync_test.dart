@@ -12,46 +12,25 @@ void main() {
     final db = DatabaseService.instance;
     await db.clearLocalHistory();
     await db.clearLocalBookmarks();
-    await db.clearAccountHistory();
-    await db.clearAccountBookmarks();
   });
 
-  test('DatabaseService isolates Local Store and Account Store', () async {
+  test('DatabaseService quản lý kho truyện cục bộ của thiết bị (chế độ khách)', () async {
     final db = DatabaseService.instance;
 
     // 1. Thêm truyện vào Local Store (khi người dùng dùng ở chế độ thiết bị)
     await db.saveLocalHistory(comicId: 'c_local', currentChapter: 10);
     await db.addLocalBookmark('c_local');
 
-    // 2. Thêm truyện vào Account Store (khi người dùng đăng nhập tài khoản)
-    await db.saveAccountHistory(comicId: 'c_account', currentChapter: 25);
-    await db.addAccountBookmark('c_account');
-
-    // Kiểm tra Local Store chỉ có truyện c_local
+    // Kiểm tra Local Store có truyện c_local
     final localH = await db.getLocalHistory();
     final localB = await db.getLocalBookmarks();
     expect(localH.any((r) => r['comic_id'] == 'c_local'), isTrue);
-    expect(localH.any((r) => r['comic_id'] == 'c_account'), isFalse);
     expect(localB.contains('c_local'), isTrue);
-    expect(localB.contains('c_account'), isFalse);
 
-    // Kiểm tra Account Store chỉ có truyện c_account
-    final accountH = await db.getAccountHistory();
-    final accountB = await db.getAccountBookmarks();
-    expect(accountH.any((r) => r['comic_id'] == 'c_account'), isTrue);
-    expect(accountH.any((r) => r['comic_id'] == 'c_local'), isFalse);
-    expect(accountB.contains('c_account'), isTrue);
-    expect(accountB.contains('c_local'), isFalse);
-
-    // 3. Xóa Account Store (như khi loadAccountLibrary dọn cache tài khoản)
-    await db.clearAccountHistory();
-    await db.clearAccountBookmarks();
-
-    // Local Store vẫn nguyên vẹn 100%!
-    final localHAfter = await db.getLocalHistory();
+    // 2. Xóa bookmark
+    await db.removeLocalBookmark('c_local');
     final localBAfter = await db.getLocalBookmarks();
-    expect(localHAfter.any((r) => r['comic_id'] == 'c_local'), isTrue);
-    expect(localBAfter.contains('c_local'), isTrue);
+    expect(localBAfter.contains('c_local'), isFalse);
   });
 
   test('LibraryProvider starts in Local Store mode and switches cleanly', () async {
@@ -105,7 +84,7 @@ void main() {
     expect(provider.bookmarks.any((e) => e.comicId == 'c8'), isTrue);
   });
 
-  test('removeFromHistory removes comic from both stores and does not reappear on logout/login', () async {
+  test('removeFromHistory removes comic from local store and memory', () async {
     final repo = ComicRepository(initialComics: [
       const Comic(
         id: 'c2',
@@ -134,11 +113,9 @@ void main() {
     await provider.removeFromHistory('c2');
     expect(provider.history.any((e) => e.comicId == 'c2'), isFalse);
 
-    // Kiểm tra trong SQLite cả Local Store và Account Store đều không còn c2
+    // Kiểm tra trong SQLite Local Store không còn c2
     final localH = await DatabaseService.instance.getLocalHistory();
-    final accountH = await DatabaseService.instance.getAccountHistory();
     expect(localH.any((r) => r['comic_id'] == 'c2'), isFalse);
-    expect(accountH.any((r) => r['comic_id'] == 'c2'), isFalse);
 
     // Sau khi logout (chuyển về switchToLocal), c2 không bao giờ xuất hiện lại trong lịch sử!
     await provider.switchToLocal();

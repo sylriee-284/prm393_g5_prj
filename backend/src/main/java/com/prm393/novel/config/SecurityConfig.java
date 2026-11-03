@@ -60,6 +60,8 @@ public class SecurityConfig {
                         // Xem danh sách truyện và đọc chương cho phép người dùng khách (Guest)
                         .requestMatchers(HttpMethod.GET, "/api/comics", "/api/comics/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // Các endpoint dành riêng cho Quản trị viên (Admin)
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Các endpoint cá nhân (tủ truyện, đổi mật khẩu, thông tin profile) bắt buộc phải có Token
                         .anyRequest().authenticated()
                 );
