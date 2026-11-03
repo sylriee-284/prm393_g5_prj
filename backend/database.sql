@@ -72,9 +72,11 @@ CREATE TABLE `comics` (
     `views` INT NOT NULL DEFAULT 0,
     `status` VARCHAR(50) NOT NULL DEFAULT 'ongoing',
     `rating` DOUBLE NOT NULL DEFAULT 5.0,
+    `is_hidden` BOOLEAN NOT NULL DEFAULT FALSE,
     INDEX `idx_comics_views` (`views` DESC),
     INDEX `idx_comics_genre` (`genre`),
-    INDEX `idx_comics_status` (`status`)
+    INDEX `idx_comics_status` (`status`),
+    INDEX `idx_comics_is_hidden` (`is_hidden`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Bảng các chương của truyện (chapters)

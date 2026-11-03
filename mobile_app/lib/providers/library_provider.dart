@@ -35,8 +35,8 @@ class LibraryProvider extends ChangeNotifier {
   NotificationSetting _notificationSetting = NotificationSetting.all;
   bool _isInitialized = false;
 
-  /// true: Đang ở phạm vi tài khoản đã đăng nhập (Account Store)
-  /// false: Đang ở phạm vi thiết bị/khách chưa đăng nhập (Local Store)
+  /// true: Đang ở tài khoản đã đăng nhập (Dữ liệu tủ truyện lấy từ Server Backend)
+  /// false: Đang ở thiết bị/khách chưa đăng nhập (Dữ liệu tủ truyện lấy từ SQLite local)
   bool _isAccountScope = false;
 
   bool get isInitialized => _isInitialized;
@@ -47,48 +47,11 @@ class LibraryProvider extends ChangeNotifier {
     try {
       if (ApiService.instance.hasToken) {
         _isAccountScope = true;
-        final historyRows = await DatabaseService.instance.getAccountHistory();
-        final bookmarkIds = await DatabaseService.instance.getAccountBookmarks();
-
-        _history.clear();
-        for (final row in historyRows) {
-          _history.add(
-            LibraryEntry(
-              comicId: row['comic_id'] as String,
-              currentChapter: row['current_chapter'] as int,
-              notifyEnabled: (row['notify_enabled'] as int) == 1,
-            ),
-          );
-        }
-
-        _bookmarks.clear();
-        _bookmarks.addAll(bookmarkIds);
-
-        // Nếu cache tài khoản trong SQLite còn trống, nạp trực tiếp từ máy chủ
-        if (_history.isEmpty && _bookmarks.isEmpty) {
-          await loadAccountLibrary();
-        }
+        await loadAccountLibrary();
       } else {
-        _isAccountScope = false;
-        final historyRows = await DatabaseService.instance.getLocalHistory();
-        final bookmarkIds = await DatabaseService.instance.getLocalBookmarks();
-
-        _history.clear();
-        for (final row in historyRows) {
-          _history.add(
-            LibraryEntry(
-              comicId: row['comic_id'] as String,
-              currentChapter: row['current_chapter'] as int,
-              notifyEnabled: (row['notify_enabled'] as int) == 1,
-            ),
-          );
-        }
-
-        _bookmarks.clear();
-        _bookmarks.addAll(bookmarkIds);
+        await switchToLocal();
 
         // Chỉ thêm dữ liệu mẫu đúng 1 lần duy nhất khi lần đầu tiên cài app
-        // Tránh tự ý thêm lại khi người dùng đã chủ động xóa sạch lịch sử
         final prefs = await SharedPreferences.getInstance();
         final sampleInitialized = prefs.getBool('library_sample_initialized') ?? false;
         if (!sampleInitialized && _history.isEmpty && _bookmarks.isEmpty) {
@@ -109,7 +72,6 @@ class LibraryProvider extends ChangeNotifier {
   List<LibraryEntry> get history => List.unmodifiable(_history);
 
   /// Danh sách các truyện đã Đánh Dấu (tab Đánh Dấu)
-  /// Trả về các truyện nằm trong _bookmarks mà không bắt buộc phải tồn tại trong _history
   List<LibraryEntry> get bookmarks {
     return _bookmarks.map((id) {
       final existing = entryOf(id);
@@ -150,13 +112,10 @@ class LibraryProvider extends ChangeNotifier {
   }
 
   // ====================================================================
-  // CÁC HÀM XỬ LÝ ĐỒNG BỘ THEO THIẾT KẾ
+  // NGHIỆP VỤ TỦ TRUYỆN: LẤY TRỰC TIẾP TỪ SERVER BACKEND (KHI ĐĂNG NHẬP)
   // ====================================================================
 
-  /// 1. TẢI TỦ TRUYỆN CỦA TÀI KHOẢN (Khi người dùng Hủy đồng bộ)
-  /// - Chuyển sang scope Account.
-  /// - Nạp tủ truyện từ Server vào Account Store.
-  /// - TUYỆT ĐỐI KHÔNG chạm vào Local Store (giữ nguyên vẹn 100% truyện trên thiết bị).
+  /// Tải trực tiếp tủ truyện của tài khoản từ máy chủ Backend
   Future<bool> loadAccountLibrary() async {
     if (!ApiService.instance.hasToken) {
       debugPrint('Chưa đăng nhập, không thể tải dữ liệu tài khoản');
@@ -170,7 +129,7 @@ class LibraryProvider extends ChangeNotifier {
       final bookmarkRes = await ApiService.instance.get('/api/library/bookmarks', requiresAuth: true);
 
       if (historyRes.statusCode != 200 || bookmarkRes.statusCode != 200) {
-        debugPrint('Lỗi tải dữ liệu tài khoản từ backend (History: ${historyRes.statusCode}, Bookmark: ${bookmarkRes.statusCode})');
+        debugPrint('Lỗi tải dữ liệu tài khoản từ backend');
         return false;
       }
 
@@ -180,28 +139,19 @@ class LibraryProvider extends ChangeNotifier {
       final serverHistoryList = (historyBody['data'] as List?) ?? [];
       final serverBookmarkList = (bookmarkBody['data'] as List?) ?? [];
 
-      // Dọn dẹp cache của Account Store, KHÔNG chạm vào Local Store
       _history.clear();
       _bookmarks.clear();
-      await DatabaseService.instance.clearAccountHistory();
-      await DatabaseService.instance.clearAccountBookmarks();
 
       for (final item in serverHistoryList) {
         final cid = item['comicId'] as String;
         final chap = (item['currentChapter'] as num).toInt();
         final noti = item['notifyEnabled'] as bool? ?? true;
         _history.add(LibraryEntry(comicId: cid, currentChapter: chap, notifyEnabled: noti));
-        await DatabaseService.instance.saveAccountHistory(
-          comicId: cid,
-          currentChapter: chap,
-          notifyEnabled: noti,
-        );
       }
 
       for (final item in serverBookmarkList) {
         final id = item['id'] as String;
         _bookmarks.add(id);
-        await DatabaseService.instance.addAccountBookmark(id);
       }
 
       notifyListeners();
@@ -212,11 +162,10 @@ class LibraryProvider extends ChangeNotifier {
     }
   }
 
-  /// 2. MERGE SERVICE: HỢP NHẤT TRUYỆN THIẾT BỊ VÀO TÀI KHOẢN (Khi Đồng ý đồng bộ hoặc ấn nút Đồng bộ)
-  /// - Lấy toàn bộ truyện từ Local Store trên thiết bị.
-  /// - Đẩy và hợp nhất các truyện đó lên máy chủ vào tài khoản hiện tại.
-  /// - Nạp lại toàn bộ tủ truyện đã hợp nhất từ Server vào Account Store.
-  /// - Giữ nguyên Local Store trên thiết bị để khi đăng xuất vẫn có đủ truyện.
+  /// HỢP NHẤT TRUYỆN THIẾT BỊ VÀO TÀI KHOẢN TRÊN BACKEND (Khi ấn nút Đồng bộ)
+  /// - Lấy toàn bộ truyện từ SQLite máy khách.
+  /// - Đẩy và hợp nhất các truyện đó lên máy chủ Backend vào tài khoản hiện tại.
+  /// - Tải lại toàn bộ tủ truyện đã hợp nhất từ Server về bộ nhớ Provider.
   Future<bool> mergeLocalWithAccount() async {
     if (!ApiService.instance.hasToken) {
       debugPrint('Chưa đăng nhập, không thể hợp nhất tủ truyện');
@@ -226,11 +175,11 @@ class LibraryProvider extends ChangeNotifier {
     try {
       _isAccountScope = true;
 
-      // a. Lấy dữ liệu từ Local Store trên máy
+      // 1. Lấy dữ liệu từ SQLite máy khách
       final localHistory = await DatabaseService.instance.getLocalHistory();
       final localBookmarks = await DatabaseService.instance.getLocalBookmarks();
 
-      // b. Lấy dữ liệu hiện tại trên Server
+      // 2. Lấy dữ liệu hiện tại trên Server Backend
       final historyRes = await ApiService.instance.get('/api/library/history', requiresAuth: true);
       final bookmarkRes = await ApiService.instance.get('/api/library/bookmarks', requiresAuth: true);
 
@@ -255,7 +204,7 @@ class LibraryProvider extends ChangeNotifier {
         serverBookmarkSet.add(item['id'] as String);
       }
 
-      // c. Đẩy lịch sử đọc từ Local lên Server
+      // 3. Đẩy lịch sử đọc từ Local lên Server
       for (final row in localHistory) {
         final cid = row['comic_id'] as String;
         final chap = row['current_chapter'] as int;
@@ -269,7 +218,7 @@ class LibraryProvider extends ChangeNotifier {
         }
       }
 
-      // d. Đẩy bookmark từ Local lên Server
+      // 4. Đẩy bookmark từ Local lên Server
       for (final cid in localBookmarks) {
         if (!serverBookmarkSet.contains(cid)) {
           final res = await ApiService.instance.put('/api/library/bookmarks/$cid', requiresAuth: true);
@@ -279,7 +228,7 @@ class LibraryProvider extends ChangeNotifier {
         }
       }
 
-      // e. Tải lại toàn bộ dữ liệu tài khoản từ máy chủ sau khi đã merge
+      // 5. Tải lại toàn bộ dữ liệu tài khoản từ máy chủ sau khi đã merge
       await loadAccountLibrary();
       return true;
     } catch (e) {
@@ -288,10 +237,9 @@ class LibraryProvider extends ChangeNotifier {
     }
   }
 
-  /// 3. CHUYỂN VỀ CHẾ ĐỘ THIẾT BỊ (Khi người dùng Đăng xuất)
+  /// CHUYỂN VỀ CHẾ ĐỘ THIẾT BỊ (Khi người dùng Đăng xuất)
   /// - Chuyển sang scope Local.
-  /// - Đọc lại toàn bộ truyện lưu trữ tại Local Store trên máy.
-  /// - Người dùng đăng xuất sẽ chỉ thấy truyện của máy.
+  /// - Đọc lại toàn bộ truyện lưu trữ tại SQLite trên máy.
   Future<void> switchToLocal() async {
     _isAccountScope = false;
     _history.clear();
@@ -311,7 +259,6 @@ class LibraryProvider extends ChangeNotifier {
     }
 
     _bookmarks.addAll(bookmarkIds);
-
     notifyListeners();
   }
 
@@ -333,7 +280,6 @@ class LibraryProvider extends ChangeNotifier {
     notifyListeners();
 
     if (_isAccountScope) {
-      await DatabaseService.instance.updateAccountNotify(comicId, entry.notifyEnabled);
       if (ApiService.instance.hasToken) {
         _fireAndForget(ApiService.instance.post('/api/library/notify/$comicId', requiresAuth: true));
       }
@@ -345,16 +291,12 @@ class LibraryProvider extends ChangeNotifier {
   Future<void> toggleBookmark(String comicId) async {
     if (_bookmarks.contains(comicId)) {
       _bookmarks.remove(comicId);
-      if (_isAccountScope) {
-        await DatabaseService.instance.removeAccountBookmark(comicId);
-      } else {
+      if (!_isAccountScope) {
         await DatabaseService.instance.removeLocalBookmark(comicId);
       }
     } else {
       _bookmarks.add(comicId);
-      if (_isAccountScope) {
-        await DatabaseService.instance.addAccountBookmark(comicId);
-      } else {
+      if (!_isAccountScope) {
         await DatabaseService.instance.addLocalBookmark(comicId);
       }
     }
@@ -366,18 +308,17 @@ class LibraryProvider extends ChangeNotifier {
   }
 
   /// Xóa truyện khỏi lịch sử đọc:
-  /// - Xóa khỏi danh sách đang hiển thị trong RAM.
-  /// - Xóa khỏi CẢ Local Store và Account Store trong SQLite trên thiết bị (để tránh bị khôi phục khi logout hoặc re-merge).
-  /// - Gọi API xóa trên backend nếu đang đăng nhập tài khoản.
+  /// - Xóa khỏi danh sách hiển thị trong Provider memory.
+  /// - Xóa trong SQLite trên thiết bị (nếu có).
+  /// - Gọi API xóa trên backend nếu đang ở scope tài khoản.
   Future<void> removeFromHistory(String comicId) async {
     _history.removeWhere((e) => e.comicId == comicId);
     notifyListeners();
 
-    // Xóa trong SQLite ở cả 2 Store để đồng bộ triệt để
+    // Xóa trong SQLite thiết bị
     await DatabaseService.instance.deleteLocalHistory(comicId);
-    await DatabaseService.instance.deleteAccountHistory(comicId);
 
-    // Đồng bộ xóa trên máy chủ (chờ phản hồi thay vì fire-and-forget để đảm bảo hoàn tất trước khi logout)
+    // Xóa trên máy chủ Backend nếu đang đăng nhập
     if (_isAccountScope && ApiService.instance.hasToken) {
       try {
         await ApiService.instance.delete('/api/library/history/$comicId', requiresAuth: true);
@@ -387,7 +328,7 @@ class LibraryProvider extends ChangeNotifier {
     }
   }
 
-  /// Khi người dùng click vào và đọc một chương, ghi nhận vào Store tương ứng
+  /// Khi người dùng đọc một chương, ghi nhận tiến độ
   Future<void> updateProgress(String comicId, int chapter) async {
     _ensureHistory(comicId);
     final entry = entryOf(comicId)!;
@@ -397,11 +338,6 @@ class LibraryProvider extends ChangeNotifier {
     notifyListeners();
 
     if (_isAccountScope) {
-      await DatabaseService.instance.saveAccountHistory(
-        comicId: comicId,
-        currentChapter: chapter,
-        notifyEnabled: entry.notifyEnabled,
-      );
       if (ApiService.instance.hasToken) {
         _fireAndForget(
           ApiService.instance.post(

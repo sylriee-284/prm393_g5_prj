@@ -13,11 +13,16 @@ public class Comic {
     private int views;
     private String status;
     private double rating;
+    private boolean isHidden;
 
     public Comic() {
     }
 
     public Comic(String id, String title, String author, String description, long coverColor, String coverLabel, String coverUrl, int totalChapters, String genre, int views, String status, double rating) {
+        this(id, title, author, description, coverColor, coverLabel, coverUrl, totalChapters, genre, views, status, rating, false);
+    }
+
+    public Comic(String id, String title, String author, String description, long coverColor, String coverLabel, String coverUrl, int totalChapters, String genre, int views, String status, double rating, boolean isHidden) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -30,6 +35,7 @@ public class Comic {
         this.views = views;
         this.status = status;
         this.rating = rating;
+        this.isHidden = isHidden;
     }
 
     public String getId() {
@@ -126,5 +132,13 @@ public class Comic {
 
     public void setRating(double rating) {
         this.rating = rating;
+    }
+
+    public boolean isHidden() {
+        return isHidden;
+    }
+
+    public void setHidden(boolean isHidden) {
+        this.isHidden = isHidden;
     }
 }

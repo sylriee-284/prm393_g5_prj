@@ -100,6 +100,20 @@ class ApiService {
     return response;
   }
 
+  Future<http.Response> patch(String path, {dynamic body, bool requiresAuth = false}) async {
+    final url = Uri.parse('$baseUrl$path');
+    final payload = body != null ? jsonEncode(body) : null;
+    var response = await http.patch(url, headers: _buildHeaders(requiresAuth: requiresAuth), body: payload);
+
+    if (requiresAuth && response.statusCode == 401 && _refreshToken != null) {
+      final refreshed = await _tryRefreshToken();
+      if (refreshed) {
+        response = await http.patch(url, headers: _buildHeaders(requiresAuth: true), body: payload);
+      }
+    }
+    return response;
+  }
+
   Future<http.Response> delete(String path, {bool requiresAuth = false}) async {
     final url = Uri.parse('$baseUrl$path');
     var response = await http.delete(url, headers: _buildHeaders(requiresAuth: requiresAuth));
